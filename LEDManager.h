@@ -28,6 +28,7 @@
 
 #include "kbd_if.h"
 #include "LEDEffect.h"
+#include "LEDEffect-Custom-Defy.h"
 #include "LEDLayers.h"
 #include "LEDPalette.h"
 #include "LEDTypes.h"
@@ -101,6 +102,9 @@ class LEDManager {
     void led_effect_reset_prio( void );
     void led_effect_refresh( void );
 
+    void led_effect_custom_toggle( uint8_t slot, const led_custom_t & settings );
+    void led_effect_custom_table_changed( void );
+
     void run( void );
 
   private:
@@ -126,6 +130,7 @@ class LEDManager {
     LEDEffect * p_LEDEffect = nullptr;
     LEDEffect * p_LEDEffect_prio = nullptr;         /* This is a top priority effect which is forcefully being active until set to null */
     led_effect_id_t LEDEffect_id_regular = 0;
+    uint8_t custom_active_slot = LED_CUSTOM_SLOT_NONE;   /* The custom slot whose effect is shown, not counting a Layers slot */
 
     bool_t leds_enabled_flag = false;
     bool_t com_mode_wired_flag = true;

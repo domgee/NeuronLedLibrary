@@ -44,6 +44,8 @@ class LEDEffect
 
         LED_EFFECT_TYPE_BATTERY_LEVEL,
         LED_EFFECT_TYPE_BLUETOOTH_PAIRING,
+
+        LED_EFFECT_TYPE_CUSTOM,         /* Custom effect slot. In neither effect list, so layer changes and led.mode do not select it */
     } led_effect_type_t;
 
     /* Constructor */

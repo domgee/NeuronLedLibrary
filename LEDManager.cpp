@@ -28,6 +28,7 @@
 
 #include "LEDEffect-BatteryStatus-Defy.h"
 #include "LEDEffect-Bluetooth-Pairing-Defy.h"
+#include "LEDEffect-Custom-Defy.h"
 #include "LEDEffect-Rainbow-Defy.h"
 #include "LEDEffect-SolidColor-Defy.h"
 #include "LEDEffect-Stalker-Defy.h"
@@ -407,6 +408,7 @@ void LEDManager::led_effect_set_type( LEDEffect::led_effect_type_t effect_type, 
     else
     {
         p_LEDEffect = p_led_effect;
+        custom_active_slot = LED_CUSTOM_SLOT_NONE;
     }
 
     led_effect_activate();
@@ -422,6 +424,7 @@ void LEDManager::led_effect_set_id( led_effect_id_t id )
 
     /* Set the LED effect */
     p_LEDEffect = LEDEffect_list_regular[id];
+    custom_active_slot = LED_CUSTOM_SLOT_NONE;
 
     led_effect_activate( );
 }
@@ -508,6 +511,95 @@ void LEDManager::led_effect_refresh( void )
 {
     /* We call the led_effect_activate to refresh the current setup */
     led_effect_activate();
+}
+
+void LEDManager::led_effect_custom_toggle( uint8_t slot, const led_custom_t & settings )
+{
+    LEDEffect * p_led_effect = nullptr;
+
+    if( leds_enabled_flag == false )
+    {
+        return;
+    }
+
+    /* Check if there is a priority LED effect currently active */
+    if( p_LEDEffect_prio != nullptr )
+    {
+        return;
+    }
+
+    /* Return to Layers when the slot's effect is already shown */
+    if( slot == custom_active_slot )
+    {
+        custom_active_slot = LED_CUSTOM_SLOT_NONE;
+        p_LEDEffect = &LEDLayers;
+
+        led_effect_activate();
+        return;
+    }
+
+    switch( settings.type )
+    {
+        case LED_CUSTOM_TYPE_SOLID:
+        case LED_CUSTOM_TYPE_RAINBOW:
+
+            LEDCustomEffect.settings_set( settings );
+            p_led_effect = &LEDCustomEffect;
+
+            break;
+
+        case LED_CUSTOM_TYPE_RAINBOW_WAVE:
+
+            p_led_effect = &LEDRainbowWaveEffectDefy;
+
+            break;
+
+        case LED_CUSTOM_TYPE_STALKER:
+
+            p_led_effect = &LEDStalkerDefy;
+
+            break;
+
+        case LED_CUSTOM_TYPE_LAYERS:
+
+            p_led_effect = &LEDLayers;
+
+            break;
+
+        case LED_CUSTOM_TYPE_OFF:
+
+            p_led_effect = &solidBlackDefy;
+
+            break;
+
+        default:
+
+            /* Ignore unused slots and unknown types */
+            return;
+    }
+
+    /* Keep LEDEffect_id_regular, so Next and Previous continue from the last built-in effect */
+    p_LEDEffect = p_led_effect;
+    custom_active_slot = ( settings.type == LED_CUSTOM_TYPE_LAYERS ) ? LED_CUSTOM_SLOT_NONE : slot;
+
+    led_effect_activate();
+}
+
+void LEDManager::led_effect_custom_table_changed( void )
+{
+    if( custom_active_slot == LED_CUSTOM_SLOT_NONE )
+    {
+        return;
+    }
+
+    /* Return to Layers, since the shown slot may have new settings or be gone. Switch also while the LEDs are disabled */
+    custom_active_slot = LED_CUSTOM_SLOT_NONE;
+    p_LEDEffect = &LEDLayers;
+
+    if( p_LEDEffect_prio == nullptr )
+    {
+        led_effect_activate();
+    }
 }
 
 /****************************************************/
